@@ -1,0 +1,37 @@
+version: '3.4'
+
+services:
+  user.api:
+    image: ${DOCKER_REGISTRY-}userapi
+    container_name: user.api
+    build:
+      context: .
+      dockerfile: user.api/Dockerfile
+
+    ports:
+      - 5000:5000
+      - 5001:5001
+
+
+  fooditem.api:
+    image: ${DOCKER_REGISTRY-}fooditemapi
+    container_name: fooditem.api
+    build:
+      context: .
+      dockerfile: foodItem.api/Dockerfile
+
+    ports:
+      - 6000:6000
+      - 6001:6001
+
+  orderitem.api:
+    image: ${DOCKER_REGISTRY-}orderitemapi
+    container_name: orderitem.api
+    build:
+      context: .
+      dockerfile: orderItem.api/Dockerfile
+     
+    ports:
+      - 7000:7000
+      - 7001:7001
+
