@@ -4,11 +4,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using user.api.ApplicationDb;
+using restaurant.api.ApplicationDb;
 
 #nullable disable
 
-namespace user.api.Migrations
+namespace restaurant.api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     partial class AppDbContextModelSnapshot : ModelSnapshot
@@ -22,53 +22,17 @@ namespace user.api.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Application.Core.Entities.PaymentMethod", b =>
+            modelBuilder.Entity("Application.Core.Entities.MenuItem", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<Guid>("ItemId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("CardNumber")
+                    b.Property<string>("Category")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Cvv")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ExpiryDate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Provider")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("PaymentMethods");
-                });
-
-            modelBuilder.Entity("Application.Core.Entities.User", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Email")
+                    b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -76,7 +40,30 @@ namespace user.api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Phone")
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("RestaurantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("ItemId");
+
+                    b.HasIndex("RestaurantId");
+
+                    b.ToTable("MenuItems");
+                });
+
+            modelBuilder.Entity("Application.Core.Entities.Restaurant", b =>
+                {
+                    b.Property<Guid>("RestaurantId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -92,25 +79,25 @@ namespace user.api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("UserId");
+                    b.HasKey("RestaurantId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Restaurants");
                 });
 
-            modelBuilder.Entity("Application.Core.Entities.PaymentMethod", b =>
+            modelBuilder.Entity("Application.Core.Entities.MenuItem", b =>
                 {
-                    b.HasOne("Application.Core.Entities.User", "User")
-                        .WithMany("PaymentMethods")
-                        .HasForeignKey("UserId")
+                    b.HasOne("Application.Core.Entities.Restaurant", "Restaurant")
+                        .WithMany("Menu")
+                        .HasForeignKey("RestaurantId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Restaurant");
                 });
 
-            modelBuilder.Entity("Application.Core.Entities.User", b =>
+            modelBuilder.Entity("Application.Core.Entities.Restaurant", b =>
                 {
-                    b.Navigation("PaymentMethods");
+                    b.Navigation("Menu");
                 });
 #pragma warning restore 612, 618
         }

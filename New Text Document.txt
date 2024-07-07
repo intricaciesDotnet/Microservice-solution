@@ -1,0 +1,75 @@
+version: '3.4'
+
+services:
+  user.api:
+    image: ${DOCKER_REGISTRY-}userapi
+    container_name: user.api
+    build:
+      context: .
+      dockerfile: user.api/Dockerfile
+
+    ports:
+      - 5000:5000
+      - 5001:5001
+
+  user.sqlserver.api:
+    image: mcr.microsoft.com/mssql/server:latest
+    container_name: user.sqlserver.api
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd.USER"
+      ACCEPT_EULA: "Y"
+    ports:
+        - 5010:5010
+
+  fooditem.api:
+    image: ${DOCKER_REGISTRY-}fooditemapi
+    container_name: fooditem.api
+    build:
+      context: .
+      dockerfile: foodItem.api/Dockerfile
+
+    ports:
+      - 6000:6000
+      - 6001:6001
+
+  food.sqlserver.api:
+    image: mcr.micrsoft.com/mssql/server:latest
+    container_name: food.sqlserver.api
+    environment:
+        SA_PASSWORD: "YourStrong!Passw0rd.FOOD"
+        ACCEPT_EULA: "Y"
+    ports:
+        - 6010:6010 
+
+  orderitem.api:
+    image: ${DOCKER_REGISTRY-}orderitemapi
+    container_name: orderitem.api
+    build:
+      context: .
+      dockerfile: orderItem.api/Dockerfile
+     
+    ports:
+      - 7000:7000
+      - 7001:7001
+
+  order.sqlserver.api:
+    image: mcr.microsoft.com/mssql/server:latest
+    container_name: order.sqlserver.api
+    environment:
+        SA_PASSWORD: "YourStrong!Passw0rd.ORDER"
+        ACCEPT_EULA: "Y"
+    ports:
+        - 7010:7010 
+
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:latest
+    container_name: sqlserver_db
+    restart: unless-stopped
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+      
+    ports:
+      - 1433:1433
+

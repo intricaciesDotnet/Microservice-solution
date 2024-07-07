@@ -14,115 +14,91 @@ namespace user.api.Services;
 public class UserService(AppDbContext context) : IUserService
 {
     private readonly AppDbContext _context = context;
+
+    public async Task<Result<List<PaymentMethod>>> AddPaymentMethod(List<AddPaymentMethodsByUserId> paymentMethodDto, CancellationToken cancellationToken)
+    {
+        try
+        {
+            List<PaymentMethod> paymentMethods = new List<PaymentMethod>();
+
+            if (paymentMethodDto is {})
+            {
+                foreach(var paymentmethod in  paymentMethodDto)
+                {
+                    if (Guid.TryParse(paymentmethod.UserId, out var userId))
+                    {
+                        paymentMethods.Add(new()
+                        {
+                            Id = Guid.NewGuid(),
+                            Type = paymentmethod.Type,
+                            Provider = paymentmethod.Provider,
+                            ExpiryDate = paymentmethod.ExpiryDate,
+                            CardNumber = paymentmethod.CardNumber,
+                            Cvv = paymentmethod.Cvv,
+                            UserId = userId
+                        });
+                    }
+                }
+
+                _context.PaymentMethods.AddRange(paymentMethods);
+                await _context.SaveChangesAsync();
+
+                return Result<List<PaymentMethod>>.OnSucess(paymentMethods, HttpStatusCode.Created);
+            }
+
+            return Result<List<PaymentMethod>>.OnFailure(Error.BadRequest, HttpStatusCode.BadRequest);
+
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
     public async Task<Result<User>> CreateAsync(UserDto input, CancellationToken cancellationToken)
     {
         try
         {
-            if (input == null) throw new UserException(nameof(input));
+            if (input == null) throw new ArgumentNullException(nameof(input));
 
-            User User = new User
+            
+            User user = new User
             {
                 UserId = Guid.NewGuid(),
-                FirstName = input.FirstName,
-                LastName = input.LastName,
+                Name = input.Name,
                 Email = input.Email,
-                SecondaryContact = input.SecondaryContact,
-                PrimaryContact = input.PrimaryContact,
-                CreatedUtc = DateTime.UtcNow,
-                UpdateUtc = DateTime.UtcNow,
+                Phone = input.Phone,
+                Street = input.Address.Street,
+                City = input.Address.City,
+                ZipCode = input.Address.ZipCode,
+                State = input.Address.State,
             };
 
-            await _context.Users.AddAsync(User);
+            await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
-            return Result<User>.OnSucess(User, HttpStatusCode.Created);
+            return Result<User>.OnSucess(user, HttpStatusCode.Created);
         }
         catch (UserException)
         {
-            return Result<User>.OnFailure(Error.BadRequest);
-        }
-    }
-
-    public async Task<Result<User>> DeleteByIdAsync(Guid guidId, CancellationToken cancellationToken)
-    {
-        try
-        {
-            User? ById = await _context.Users.Where(x => x.UserId == guidId)
-                .AsNoTracking()
-                .FirstOrDefaultAsync();
-
-            if (ById != null)
-            {
-                _context.Users.Remove(ById);
-            }
-            await _context.SaveChangesAsync();
-
-            return Result<User>.OnSucess(ById!, HttpStatusCode.OK);
-        }
-        catch (UserException)
-        {
-            return Result<User>.OnFailure(Error.BadRequest, HttpStatusCode.BadRequest);
+            throw new NotImplementedException();
         }
     }
 
     public async Task<Result<IEnumerable<User>>> GetAllUserAsync(CancellationToken cancellationToken)
-        => Result<IEnumerable<User>>.OnSucess(await _context
-            .Users
-            .AsNoTracking()
-            .ToListAsync(),
-            HttpStatusCode.OK);
-    
-
-    public async Task<Result<User>> GetByIdAsync(Guid guidId, CancellationToken cancellationToken)
     {
         try
         {
-            User? ById = await _context.Users.Where(x => x.UserId == guidId)
-                 .AsNoTracking()
-                 .FirstOrDefaultAsync();
+            var list =  await _context
+                .Users
+                .AsNoTracking()
+                .ToListAsync();
 
-            if (ById != null)
-            {
-                return Result<User>.OnSucess(ById, HttpStatusCode.OK);
-            }
-
-            return Result<User>.OnFailure(Error.InvalidId, HttpStatusCode.NotFound);
-            
+            return Result<IEnumerable<User>>.OnSucess(list, HttpStatusCode.OK);
         }
         catch (UserException)
         {
-            return Result<User>.OnFailure(Error.BadRequest, HttpStatusCode.BadRequest);
+            throw new NotImplementedException();
         }
     }
-
-    public async Task<Result<User>> UpdateAsync(Guid guidId, UserDto input, CancellationToken cancellationToken)
-    {
-        try
-        {
-            Result<User> ByGuidId = await GetByIdAsync(guidId, cancellationToken);
-
-            if (ByGuidId != null)
-            {
-                User user = ByGuidId.Value;
-                user.FirstName = input.FirstName;
-                user.LastName = input.LastName;
-                user.Email = input.Email;
-                user.SecondaryContact = input.SecondaryContact;
-                user.PrimaryContact = input.PrimaryContact;
-                user.UpdateUtc = DateTime.UtcNow;
-
-                _context.Users.Update(user);
-                await _context.SaveChangesAsync();
-
-                return Result<User>.OnSucess(user, HttpStatusCode.OK);
-            }
-
-            return Result<User>.OnFailure(Error.InvalidId, HttpStatusCode.NotFound);
-        }
-        catch (UserException)
-        {
-            return Result<User>.OnFailure(Error.BadRequest, HttpStatusCode.BadRequest);
-        }
-    }
-
 }

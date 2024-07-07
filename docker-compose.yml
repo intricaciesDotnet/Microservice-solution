@@ -12,35 +12,32 @@ services:
       - 5000:5000
       - 5001:5001
 
-
-  fooditem.api:
-    image: ${DOCKER_REGISTRY-}fooditemapi
-    container_name: fooditem.api
-    build:
-      context: .
-      dockerfile: foodItem.api/Dockerfile
-
-    ports:
-      - 6000:6000
-      - 6001:6001
-
-  orderitem.api:
-    image: ${DOCKER_REGISTRY-}orderitemapi
-    container_name: orderitem.api
-    build:
-      context: .
-      dockerfile: orderItem.api/Dockerfile
-     
-    ports:
-      - 7000:7000
-      - 7001:7001
-
-  sqlserver:
+  user.sqlserver:
     image: mcr.microsoft.com/mssql/server:latest
-    container_name: sqlserver_db
-    restart: unless-stopped
+    container_name: user.sqlserver.db
     environment:
-      SA_PASSWORD: "YourStrong!Passw0rd"
+      SA_PASSWORD: "YourStrong!Passw0rd.User"
+      ACCEPT_EULA: "Y"
+      
+    ports:
+      - 5010:5010
+
+  restaurant.api:
+    image: ${DOCKER_REGISTRY-}restaurantapi
+    container_name: restaurant.api
+    build:
+      context: .
+      dockerfile: restaurant.api/Dockerfile
+
+    ports:
+        - 6000:6000
+        - 6001:6001 
+ 
+  restaurant.sqlserver:
+    image: mcr.microsoft.com/mssql/server:latest
+    container_name: restaurant.sqlserver.db
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd.restaurant"
       ACCEPT_EULA: "Y"
       
     ports:

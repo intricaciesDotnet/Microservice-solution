@@ -5,6 +5,8 @@ using System.Net;
 using user.api.Abstractions;
 using user.api.Abstractions.Interfaces;
 using user.api.DTOs;
+using user.api.Exceptions;
+using System.Linq;
 
 namespace user.api.Endpoints;
 
@@ -12,12 +14,21 @@ public static class UserEndpoints
 {
     public static void MapUserEndpoint(this IEndpointRouteBuilder routeBuilder)
     {
-        routeBuilder.MapGet(Helpers.AllUser, async (IUserService userService, CancellationToken cancellation) =>
+        routeBuilder.MapGet(Helpers.AllUser, async (IUserService userService, 
+            CancellationToken cancellation) =>
         {
-            Result<IEnumerable<User>> users = await userService.GetAllUserAsync(cancellation);
-            return users.IsSuccess ?
-                 Results.Ok(users) :
-                 Results.NotFound(users);
+            try
+            {
+                Result<IEnumerable<User>> users = await userService.GetAllUserAsync(cancellation);
+
+                return users.IsSuccess ?
+                     Results.Ok(users) :
+                     Results.NotFound(users);
+            }
+            catch (UserException)
+            {
+                return Results.Ok(Result<List<PaymentMethod>>.OnFailure(Error.Failed));
+            }
         });
 
         routeBuilder.MapPost(Helpers.CreateUser, async ([FromBody]
@@ -37,59 +48,31 @@ public static class UserEndpoints
             return Results.BadRequest(Result<UserDto>.OnFailure(Error.BadRequest, HttpStatusCode.BadRequest));
         });
 
-        routeBuilder.MapPut(Helpers.UpdateUser, async ([FromQuery] string guidId,
-            [FromBody] UserDto userDto,
+
+
+        routeBuilder.MapPost(Helpers.AddPaymentMethods, async (
+            [FromBody] AddPaymentMethodsByUserIdList paymentMethods,
             IUserService userService,
             CancellationToken cancellation) =>
         {
-            if (!string.IsNullOrEmpty(guidId))
+            try
             {
-                if (Guid.TryParse(guidId, out var guid))
+                if (paymentMethods != null && paymentMethods.AddPaymentMethodsByUserId.Any())
                 {
-                    Result<User> user = await userService.UpdateAsync(guid, userDto, cancellation);
-                    return user.IsSuccess ?
-                    Results.Ok(user) :
-                    Results.BadRequest(user);
+                    Result<List<PaymentMethod>> payments = await userService.AddPaymentMethod(paymentMethods.AddPaymentMethodsByUserId, cancellation);
+
+                    return Results.Ok(payments);
                 }
+
+                return Results.BadRequest();
             }
-            return Results.BadRequest(Result<UserDto>.OnFailure(Error.InvalidId, HttpStatusCode.NotFound));
+            catch (Exception)
+            {
+
+                throw;
+            }
         });
 
-
-        routeBuilder.MapGet(Helpers.GetUserByUniqueId, async ([FromQuery] string guidId,
-            IUserService userService,
-            CancellationToken cancellation) =>
-        {
-            if (!string.IsNullOrEmpty(guidId))
-            {
-                if (Guid.TryParse(guidId, out var guid))
-                {
-                    Result<User> user = await userService.GetByIdAsync(guid, cancellation);
-                    return user.IsSuccess ?
-                    Results.Ok(user) :
-                    Results.BadRequest(user);
-                }
-            }
-
-            return Results.BadRequest(Result<UserDto>.OnFailure(Error.InvalidId, HttpStatusCode.NotFound));
-        });
-
-
-        routeBuilder.MapDelete(Helpers.DeleteUser, async ([FromQuery] string guidId,
-            IUserService userService,
-            CancellationToken cancellation) =>
-        {
-            if (!string.IsNullOrEmpty(guidId))
-            {
-                if (Guid.TryParse(guidId, out var guid))
-                {
-                    Result<User> user = await userService.DeleteByIdAsync(guid, cancellation);
-                    return user.IsSuccess ?
-                    Results.Ok(user) :
-                    Results.BadRequest(user);
-                }
-            }
-            return Results.BadRequest(Result<UserDto>.OnFailure(Error.InvalidId, HttpStatusCode.NotFound));
-        });
+       
     }
 }

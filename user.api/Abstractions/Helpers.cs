@@ -7,4 +7,6 @@ public class Helpers
     public const string UpdateUser = "api/update-user/{id}";
     public const string DeleteUser = "api/delete-user/{id}";
     public const string GetUserByUniqueId = "api/get-user/{id}";
+
+    public const string AddPaymentMethods = "api/add-payments";
 }
