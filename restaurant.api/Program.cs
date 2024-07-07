@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using restaurant.api.ApplicationDb;
+using restaurant.api.Endpoints;
+using restaurant.api.MigrationExtension;
+using restaurant.api.Services;
 using user.api.Abstractions.Interfaces;
-using user.api.ApplicationDb;
-using user.api.Endpoints;
-using user.api.MigrationExtension;
-using user.api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -14,7 +13,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddTransient<IUserService, UserService>();
+builder.Services.AddTransient<IRestaurantService, RestaurantService>();
+builder.Services.AddTransient<IMenuItemsService, MenuItemService>();
 
 var app = builder.Build();
 
@@ -26,5 +26,5 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.MapUserEndpoint();
+app.MapEndpoints();
 app.Run();

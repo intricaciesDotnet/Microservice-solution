@@ -6,7 +6,8 @@
       "serviceActions": {
         "user.api": "StartDebugging",
         "fooditem.api": "StartDebugging",
-        "orderitem.api": "StartDebugging"
+        "orderitem.api": "StartDebugging",
+        "restaurant.api": "StartDebugging"
       }
     }
   }

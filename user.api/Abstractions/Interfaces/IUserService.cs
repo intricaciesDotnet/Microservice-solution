@@ -8,5 +8,7 @@ namespace user.api.Abstractions.Interfaces;
 public interface IUserService : IBaseServiceT<UserDto, Result<User>>
 {
     Task<Result<IEnumerable<User>>> GetAllUserAsync(CancellationToken cancellationToken);
+
+    Task<Result<List<PaymentMethod>>> AddPaymentMethod(List<AddPaymentMethodsByUserId> paymentMethodDto, CancellationToken cancellationToken);
 }
 
